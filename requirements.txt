@@ -1,0 +1,6 @@
+pandas 
+matplotlib.pyplot 
+numpy
+re
+scipy.optimize
+sys
