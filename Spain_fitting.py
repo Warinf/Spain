@@ -78,4 +78,4 @@ if uploaded_file:
         st.pyplot(fig)
         
         output_excel = df_results.to_excel("Results.xlsx", index=False)
-        st.download_button("Download Results", "Results.xlsx")
+        st.download_button("Download Results", data=output_excel, file_name="Results.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
