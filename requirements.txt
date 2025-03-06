@@ -1,6 +1,5 @@
 pandas 
 matplotlib
 numpy
-re
 scipy
 sys
