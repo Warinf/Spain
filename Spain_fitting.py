@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import re
 from scipy.optimize import curve_fit
+import os
 
 def time_to_hours(time_str):
     match = re.match(r'(\d+)\s*h\s*(\d+)?\s*min?', str(time_str))
@@ -80,3 +81,36 @@ if uploaded_file:
         
         output_excel = df_results.to_excel("Results.xlsx", index=False)
         st.download_button("Download Results", data=output_excel, file_name="Results.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        
+        # Calculate the number of rows and columns for subplots
+        num_samples = len(fluorescence_cols)
+        max_plots = 96
+        cols = 8  # We will use 8 columns per row, and dynamically calculate rows based on the number of samples
+        rows = (num_samples // cols) + (1 if num_samples % cols > 0 else 0)
+
+        # Create subplots for the sigmoid fits
+        fig, axes = plt.subplots(rows, cols, figsize=(15, 5 * rows))
+        axes = axes.flatten()  # Flatten the 2D array of axes into a 1D array
+
+        # Process each fluorescence data column and plot in a subplot
+        for idx, col in enumerate(fluorescence_cols):
+            popt, xdata, ydata = process_column(df_raw, col, time_range)
+            if popt is not None:
+                A1, A2, x0, dx = popt
+                ax = axes[idx]
+                ax.plot(xdata, ydata, 'b-', label=f"Data: {col}")
+                ax.plot(xdata, custom_sigmoid(xdata, *popt), 'r--', label="Sigmoid Fit")
+                ax.set_title(f"Sigmoid Fit - {col}")
+                ax.set_xlabel("Time (hours)")
+                ax.set_ylabel("Normalized Fluorescence")
+                ax.legend()
+
+        # Adjust layout to prevent overlapping
+        plt.tight_layout()
+
+        # Save the subplot figure in the same directory as the input file
+        input_dir = os.path.dirname(uploaded_file.name) if uploaded_file else os.getcwd()
+        subplot_fig_path = os.path.join(input_dir, 'sigmoid_fits.png')
+        plt.savefig(subplot_fig_path)
+        st.write(f"Subplots saved to {subplot_fig_path}")
+        st.image(subplot_fig_path)
