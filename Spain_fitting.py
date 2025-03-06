@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import re
 from scipy.optimize import curve_fit
-import os
 
 def time_to_hours(time_str):
     match = re.match(r'(\d+)\s*h\s*(\d+)?\s*min?', str(time_str))
@@ -65,23 +64,6 @@ if uploaded_file:
         st.write("### Results Table")
         st.dataframe(df_results)
         
-        fig, ax = plt.subplots(figsize=(10, 6))
-        x = np.arange(len(results))
-        width = 0.35
-        
-        ax.bar(x - width / 2, df_results["Half-Time (hours)"], width, label='Half-Time', color='b')
-        ax.bar(x + width / 2, df_results["Lag-Time (hours)"], width, label='Lag-Time', color='r')
-        ax.set_xlabel("Sample")
-        ax.set_ylabel("Time (hours)")
-        ax.set_xticks(x)
-        ax.set_xticklabels(df_results["Sample"], rotation=90)
-        ax.legend()
-        
-        st.pyplot(fig)
-        
-        output_excel = df_results.to_excel("Results.xlsx", index=False)
-        st.download_button("Download Results", data=output_excel, file_name="Results.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-        
         # Calculate the number of rows and columns for subplots
         num_samples = len(fluorescence_cols)
         max_plots = 96
@@ -108,9 +90,21 @@ if uploaded_file:
         # Adjust layout to prevent overlapping
         plt.tight_layout()
 
-        # Save the subplot figure in the same directory as the input file
-        input_dir = os.path.dirname(uploaded_file.name) if uploaded_file else os.getcwd()
-        subplot_fig_path = os.path.join(input_dir, 'sigmoid_fits.png')
-        plt.savefig(subplot_fig_path)
-        st.write(f"Subplots saved to {subplot_fig_path}")
-        st.image(subplot_fig_path)
+        # Display the subplots first
+        st.pyplot(fig)
+        
+        # Now, plot the bar chart after the subplots
+        fig, ax = plt.subplots(figsize=(10, 6))
+        x = np.arange(len(results))
+        width = 0.35
+        
+        ax.bar(x - width / 2, df_results["Half-Time (hours)"], width, label='Half-Time', color='b')
+        ax.bar(x + width / 2, df_results["Lag-Time (hours)"], width, label='Lag-Time', color='r')
+        ax.set_xlabel("Sample")
+        ax.set_ylabel("Time (hours)")
+        ax.set_xticks(x)
+        ax.set_xticklabels(df_results["Sample"], rotation=90)
+        ax.legend()
+        
+        # Display the bar chart
+        st.pyplot(fig)
