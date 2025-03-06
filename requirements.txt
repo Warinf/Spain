@@ -1,6 +1,6 @@
 pandas 
-matplotlib.pyplot 
+matplotlib
 numpy
 re
-scipy.optimize
+scipy
 sys
