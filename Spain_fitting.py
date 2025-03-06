@@ -31,7 +31,8 @@ def process_column(df, column_name, time_range=None):
     try:
         popt, _ = curve_fit(custom_sigmoid, xdata, ydata, p0=initial_guess, method='dogbox', maxfev=10000)
         return popt, xdata, ydata
-    except:
+    except Exception as e:
+        st.error(f"Error fitting data for {column_name}: {e}")
         return None, xdata, ydata
 
 st.title("Fluorescence Data Analysis")
@@ -52,7 +53,7 @@ if uploaded_file:
     
     for col in fluorescence_cols:
         popt, xdata, ydata = process_column(df_raw, col, time_range)
-        if popt:
+        if popt is not None:
             A1, A2, x0, dx = popt
             t50, tlag = x0, x0 - (2 * dx)
             if t50 >= 0 and tlag >= 0:
