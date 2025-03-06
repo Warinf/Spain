@@ -52,12 +52,12 @@ if uploaded_file:
     
     for col in fluorescence_cols:
         popt, xdata, ydata = process_column(df_raw, col, time_range)
-      if popt is not None:
+    if popt is not None:
        A1, A2, x0, dx = popt
-        t50, tlag = x0, x0 - (2 * dx)
-    if t50 >= 0 and tlag >= 0:
-        results.append({"Sample": col, "Half-Time (hours)": t50, "Lag-Time (hours)": tlag})
-else:
+       t50, tlag = x0, x0 - (2 * dx)
+       if t50 >= 0 and tlag >= 0:
+          results.append({"Sample": col, "Half-Time (hours)": t50, "Lag-Time (hours)": tlag})
+else: 
     st.warning(f"Curve fitting failed for {col}. Skipping this sample.")
 
     
