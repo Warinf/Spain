@@ -63,7 +63,8 @@ if uploaded_file:
             popt, xdata, ydata = process_column(df_raw, col, t50)
             if popt is not None:
                 A1, A2, x0, dx = popt
-                results.append({"Sample": col, "Half-Time (hours)": t50})
+                tlag = x0 - (2 * dx)  # Compute lag time
+                results.append({"Sample": col, "Half-Time (hours)": t50, "Lag-Time (hours)": tlag})
     
     if results:
         df_results = pd.DataFrame(results)
@@ -95,7 +96,10 @@ if uploaded_file:
         
         fig, ax = plt.subplots(figsize=(10, 6))
         x = np.arange(len(results))
-        ax.bar(x, df_results["Half-Time (hours)"], color='b', label='Half-Time')
+        width = 0.35
+        
+        ax.bar(x - width / 2, df_results["Half-Time (hours)"], width, label='Half-Time', color='b')
+        ax.bar(x + width / 2, df_results["Lag-Time (hours)"], width, label='Lag-Time', color='r')
         ax.set_xlabel("Sample")
         ax.set_ylabel("Time (hours)")
         ax.set_xticks(x)
