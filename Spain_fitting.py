@@ -74,7 +74,7 @@ if uploaded_file:
         num_samples = len(fluorescence_cols)
         cols = 8
         rows = (num_samples // cols) + (1 if num_samples % cols > 0 else 0)
-        fig, axes = plt.subplots(rows, cols, figsize=(20, 5 * rows))
+        fig, axes = plt.subplots(rows, cols, figsize=(40, 5 * rows))
         axes = axes.flatten()
         
         for idx, col in enumerate(fluorescence_cols):
