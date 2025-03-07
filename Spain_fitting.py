@@ -74,7 +74,7 @@ if uploaded_file:
         num_samples = len(fluorescence_cols)
         cols = 8
         rows = (num_samples // cols) + (1 if num_samples % cols > 0 else 0)
-        fig, axes = plt.subplots(rows, cols, figsize=(40, 5 * rows))
+        fig, axes = plt.subplots(rows, cols, figsize=(200, 25 * rows), dpi=300)
         axes = axes.flatten()
         
         for idx, col in enumerate(fluorescence_cols):
@@ -94,7 +94,7 @@ if uploaded_file:
         plt.tight_layout()
         st.pyplot(fig)
         
-        fig, ax = plt.subplots(figsize=(10, 6))
+        fig, ax = plt.subplots(figsize=(10, 6), dpi=300)
         x = np.arange(len(results))
         width = 0.35
         
