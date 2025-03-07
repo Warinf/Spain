@@ -16,12 +16,19 @@ def time_to_hours(time_str):
 def custom_sigmoid(x, A1, A2, x0, dx):
     return (A1 - A2) / (1 + np.exp((x - x0) / dx)) + A2
 
-def process_column(df, column_name, time_range=None):
+def find_t50(xdata, ydata):
+    try:
+        idx = np.where(ydata >= 0.5)[0][0]  # Find first occurrence where intensity >= 0.5
+        return xdata.iloc[idx] if idx < len(xdata) else None
+    except:
+        return None
+
+def process_column(df, column_name, t_fit):
     xdata = df['Time']
     ydata = df[column_name]
     
-    if time_range:
-        mask = (xdata >= time_range[0]) & (xdata <= time_range[1])
+    if t_fit is not None:
+        mask = (xdata >= 0) & (xdata <= 2 * t_fit)  # Dynamic fitting window
         xdata = xdata[mask]
         ydata = ydata[mask]
     
@@ -48,63 +55,50 @@ if uploaded_file:
         df_raw[fluorescence_cols].max() - df_raw[fluorescence_cols].min()
     )
     
-    time_range = st.slider("Select Time Range for Fitting (hours)", 0.0, float(df_raw['Time'].max()), (0.0, float(df_raw['Time'].max())))
     results = []
     
     for col in fluorescence_cols:
-        popt, xdata, ydata = process_column(df_raw, col, time_range)
-        if popt is not None:
-            A1, A2, x0, dx = popt
-            t50, tlag = x0, x0 - (2 * dx)
-            if t50 >= 0 and tlag >= 0:
-                results.append({"Sample": col, "Half-Time (hours)": t50, "Lag-Time (hours)": tlag})
+        t50 = find_t50(df_raw['Time'], df_raw[col])
+        if t50 is not None:
+            popt, xdata, ydata = process_column(df_raw, col, t50)
+            if popt is not None:
+                A1, A2, x0, dx = popt
+                results.append({"Sample": col, "Half-Time (hours)": t50})
     
     if results:
         df_results = pd.DataFrame(results)
         st.write("### Results Table")
         st.dataframe(df_results)
         
-        # Calculate the number of rows and columns for subplots
         num_samples = len(fluorescence_cols)
-        max_plots = 96
-        cols = 8  # We will use 8 columns per row, and dynamically calculate rows based on the number of samples
+        cols = 8
         rows = (num_samples // cols) + (1 if num_samples % cols > 0 else 0)
-
-        # Create subplots for the sigmoid fits
         fig, axes = plt.subplots(rows, cols, figsize=(15, 5 * rows))
-        axes = axes.flatten()  # Flatten the 2D array of axes into a 1D array
-
-        # Process each fluorescence data column and plot in a subplot
+        axes = axes.flatten()
+        
         for idx, col in enumerate(fluorescence_cols):
-            popt, xdata, ydata = process_column(df_raw, col, time_range)
-            if popt is not None:
-                A1, A2, x0, dx = popt
-                ax = axes[idx]
-                ax.plot(xdata, ydata, 'b-', label=f"Data: {col}")
-                ax.plot(xdata, custom_sigmoid(xdata, *popt), 'r--', label="Sigmoid Fit")
-                ax.set_title(f"Sigmoid Fit - {col}")
-                ax.set_xlabel("Time (hours)")
-                ax.set_ylabel("Normalized Fluorescence")
-                ax.legend()
-
-        # Adjust layout to prevent overlapping
+            t50 = find_t50(df_raw['Time'], df_raw[col])
+            if t50 is not None:
+                popt, xdata, ydata = process_column(df_raw, col, t50)
+                if popt is not None:
+                    A1, A2, x0, dx = popt
+                    ax = axes[idx]
+                    ax.plot(xdata, ydata, 'b-', label=f"Data: {col}")
+                    ax.plot(xdata, custom_sigmoid(xdata, *popt), 'r--', label="Sigmoid Fit")
+                    ax.set_title(f"Sigmoid Fit - {col}")
+                    ax.set_xlabel("Time (hours)")
+                    ax.set_ylabel("Normalized Fluorescence")
+                    ax.legend()
+        
         plt.tight_layout()
-
-        # Display the subplots first
         st.pyplot(fig)
         
-        # Now, plot the bar chart after the subplots
         fig, ax = plt.subplots(figsize=(10, 6))
         x = np.arange(len(results))
-        width = 0.35
-        
-        ax.bar(x - width / 2, df_results["Half-Time (hours)"], width, label='Half-Time', color='b')
-        ax.bar(x + width / 2, df_results["Lag-Time (hours)"], width, label='Lag-Time', color='r')
+        ax.bar(x, df_results["Half-Time (hours)"], color='b', label='Half-Time')
         ax.set_xlabel("Sample")
         ax.set_ylabel("Time (hours)")
         ax.set_xticks(x)
         ax.set_xticklabels(df_results["Sample"], rotation=90)
         ax.legend()
-        
-        # Display the bar chart
         st.pyplot(fig)
