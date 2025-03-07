@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import re
+import io
 from scipy.optimize import curve_fit
 
 def time_to_hours(time_str):
@@ -74,7 +75,7 @@ if uploaded_file:
         num_samples = len(fluorescence_cols)
         cols = 8
         rows = (num_samples // cols) + (1 if num_samples % cols > 0 else 0)
-        fig, axes = plt.subplots(rows, cols, figsize=(40, 5 * rows), dpi=300)
+        fig, axes = plt.subplots(rows, cols, figsize=(40, 5 * rows), dpi=200)  # Increased size and resolution
         axes = axes.flatten()
         
         for idx, col in enumerate(fluorescence_cols):
@@ -92,9 +93,11 @@ if uploaded_file:
                     ax.legend()
         
         plt.tight_layout()
-        st.pyplot(fig)
+        svg_buffer = io.BytesIO()
+        fig.savefig(svg_buffer, format="svg")
+        st.image(svg_buffer, use_column_width=True)
         
-        fig, ax = plt.subplots(figsize=(10, 6), dpi=300)
+        fig, ax = plt.subplots(figsize=(12, 8), dpi=200)  # Increased size and resolution
         x = np.arange(len(results))
         width = 0.35
         
@@ -105,4 +108,7 @@ if uploaded_file:
         ax.set_xticks(x)
         ax.set_xticklabels(df_results["Sample"], rotation=90)
         ax.legend()
-        st.pyplot(fig)
+        
+        svg_buffer = io.BytesIO()
+        fig.savefig(svg_buffer, format="svg")
+        st.image(svg_buffer, use_column_width=True)
