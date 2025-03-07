@@ -91,7 +91,7 @@ if uploaded_file:
                     ax.set_ylabel("Normalized Fluorescence")
                     ax.legend()
         
-        plt.tight_layout(figsize=(10, 6))
+        plt.tight_layout()
         st.pyplot(fig)
         
         fig, ax = plt.subplots(figsize=(10, 6))
