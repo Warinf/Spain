@@ -94,7 +94,7 @@ if uploaded_file:
         plt.tight_layout()
         st.pyplot(fig)
         
-        fig, ax = plt.subplots(figsize=(10, 6))
+        fig, ax = plt.subplots(figsize=(50, 30))
         x = np.arange(len(results))
         width = 0.35
         
