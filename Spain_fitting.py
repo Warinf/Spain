@@ -72,7 +72,7 @@ if uploaded_file:
         st.dataframe(df_results)
         
         num_samples = len(fluorescence_cols)
-        cols = 8
+        cols = 4
         rows = (num_samples // cols) + (1 if num_samples % cols > 0 else 0)
         fig, axes = plt.subplots(rows, cols, figsize=(40, 5 * rows))  # Increased size and resolution
         axes = axes.flatten()
