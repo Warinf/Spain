@@ -46,10 +46,19 @@ st.title("Fluorescence Data Analysis")
 uploaded_file = st.file_uploader("Upload Excel File", type=["xlsx"])
 
 if uploaded_file:
-    df_raw = pd.read_excel(uploaded_file, skiprows=2)
-    df_raw.columns = ['Content', 'Time'] + [f"Sample X{i}" for i in range(1, len(df_raw.columns) - 1)]
+    # Load and preprocess the data, starting from row 12 (3rd row in 0-based indexing)
+    df_raw = pd.read_excel(uploaded_file, skiprows=12)  # Skip the first twelve rows (metadata)
+
+    # Set proper headers: The first row after skipping is now the header row
+    df_raw.columns = ['Content', 'Time'] + df_raw.columns[2:].tolist()
+
+    # Convert 'Time' column to hours
     df_raw['Time'] = df_raw['Time'].apply(lambda x: time_to_hours(str(x)))
+    
+    # Drop rows with missing 'Time'
     df_raw.dropna(subset=['Time'], inplace=True)
+    
+    # Normalize the fluorescence columns
     fluorescence_cols = [col for col in df_raw.columns if col.startswith('Sample')]
     df_raw[fluorescence_cols] = (df_raw[fluorescence_cols] - df_raw[fluorescence_cols].min()) / (
         df_raw[fluorescence_cols].max() - df_raw[fluorescence_cols].min()
